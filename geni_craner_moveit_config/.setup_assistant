@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: geni_craner_description
+    relative_path: urdf/geni_craner.urdf
+  srdf:
+    relative_path: config/geni_craner.srdf
+  package_settings:
+    author_name: leo
+    author_email: j3456973372@163.com
+    generated_timestamp: 1785151619
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="geni_craner">
+
+  <!-- 引入原始机器人 URDF 模型（已包含 world 固定关节） -->
+  <xacro:include filename="$(find geni_craner_description)/urdf/geni_craner.urdf" />
+
+  <!-- 引入 ros2_control + gazebo 插件配置 -->
+  <xacro:include filename="$(find geni_craner_description)/urdf/geni_craner.ros2_control.xacro" />
+
+  <!-- 实例化控制硬件（prefix 留空） -->
+  <xacro:geni_craner_ros2_control prefix="" />
+
+</robot>
+

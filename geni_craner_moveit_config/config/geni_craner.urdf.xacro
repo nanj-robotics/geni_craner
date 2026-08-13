@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="geni_craner">
+    <xacro:arg name="initial_positions_file" default="initial_positions.yaml" />
+
+    <!-- Import geni_craner urdf file -->
+    <xacro:include filename="$(find geni_craner_description)/urdf/geni_craner.urdf" />
+
+    <!-- Import control_xacro -->
+    <xacro:include filename="geni_craner.ros2_control.xacro" />
+
+
+    <xacro:geni_craner_ros2_control name="FakeSystem" initial_positions_file="$(arg initial_positions_file)"/>
+
+</robot>

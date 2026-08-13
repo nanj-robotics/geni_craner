@@ -1,0 +1,9 @@
+<library path="el_a3_hardware">
+  <class name="el_a3_hardware/ZeroTorqueController"
+         type="el_a3_hardware::ZeroTorqueController"
+         base_class_type="controller_interface::ControllerInterface">
+    <description>
+      Gravity-compensated zero-torque controller for EL-A3. Sets Kp=0 and applies RNEA gravity torques.
+    </description>
+  </class>
+</library>
