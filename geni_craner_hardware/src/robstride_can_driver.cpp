@@ -284,11 +284,12 @@ bool RobstrideCanDriver::sendMotionControl(
   
   // 转换数据（高字节在前，低字节在后）
   // 运控模式使用统一的映射范围
-  constexpr double MOTION_V_MIN = -50.0;
-  constexpr double MOTION_V_MAX = 50.0;
+  //constexpr double MOTION_V_MIN = -50.0;
+  //constexpr double MOTION_V_MAX = 50.0;
   
   uint16_t pos_raw = floatToUint16(position, params.p_min, params.p_max);
-  uint16_t vel_raw = floatToUint16(velocity, MOTION_V_MIN, MOTION_V_MAX);
+  //uint16_t vel_raw = floatToUint16(velocity, MOTION_V_MIN, MOTION_V_MAX);
+  uint16_t vel_raw = floatToUint16(velocity, params.v_min, params.v_max);
   uint16_t kp_raw = floatToUint16(kp, params.kp_min, params.kp_max);
   uint16_t kd_raw = floatToUint16(kd, params.kd_min, params.kd_max);
   

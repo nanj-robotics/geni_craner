@@ -560,20 +560,20 @@ hardware_interface::CallbackReturn RsA3HardwareInterface::on_activate(
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
-  
+
   // ============ 步骤 1：使能所有电机（Kp=0，无位置控制） ============
   // 电机在失能状态不会回传反馈，因此必须先使能
   RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
               "正在以软模式使能电机（Kp=0）...");
-  
+
   for (size_t i = 0; i < joint_configs_.size(); ++i) {
     const auto& config = joint_configs_[i];
     auto& driver = can_drivers_.at(config.can_interface);
-    
+
     // 1) 先停止电机（不清故障，前面已清过）
     driver->disableMotor(config.motor_id, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
-    
+
     // 2) 设置为运控模式（run_mode = 0）
     if (!driver->setRunMode(config.motor_id, RunMode::MOTION_CONTROL)) {
       RCLCPP_ERROR(rclcpp::get_logger("RsA3HardwareInterface"),
@@ -581,16 +581,15 @@ hardware_interface::CallbackReturn RsA3HardwareInterface::on_activate(
       return hardware_interface::CallbackReturn::ERROR;
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
-    
+
     // 3) 使能电机
     if (!driver->enableMotor(config.motor_id)) {
       RCLCPP_ERROR(rclcpp::get_logger("RsA3HardwareInterface"),
                    "电机 %d 使能失败", config.motor_id);
       return hardware_interface::CallbackReturn::ERROR;
     }
-    
+
     // 4) [关键] 发送 Kp=0 的指令，使电机进入"软"状态，不跟踪任何位置
-    //    这样即使发送任意位置指令，电机也不会运动
     driver->sendMotionControl(
         config.motor_id,
         config.motor_type,
@@ -600,43 +599,117 @@ hardware_interface::CallbackReturn RsA3HardwareInterface::on_activate(
         4.0,          // Kd = 4.0（提高阻尼，防止抖动）
         0.0           // torque = 0
     );
-    
+
     RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
                 "电机 %d 已以软模式使能（Kp=0，Kd=4）", config.motor_id);
-    
+
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
 
-  // ============ 步骤 2：开环控制 - 使用默认位置 (0)，跳过反馈等待 ============
+  // ============ 步骤 2：读取电机实际位置 ============
   RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
-              "开环模式：所有关节使用默认位置 0.0，跳过反馈等待");
-  
+              "正在读取电机实际位置...");
   std::vector<double> initial_positions(joint_configs_.size(), 0.0);
-  
+  std::vector<bool> position_valid(joint_configs_.size(), false);
+
+  // 等待反馈有效，最多 1.5 秒（75 次 × 20ms）
+  for (int retry = 0; retry < 75; ++retry) {
+    bool all_valid = true;
+    for (size_t i = 0; i < joint_configs_.size(); ++i) {
+      if (position_valid[i]) continue;
+      const auto& config = joint_configs_[i];
+      auto& driver = can_drivers_.at(config.can_interface);
+      auto feedback = driver->getMotorFeedback(config.motor_id);
+      if (feedback.is_valid) {
+        initial_positions[i] =
+            (feedback.position - config.position_offset) * config.direction;
+        position_valid[i] = true;
+      } else {
+        all_valid = false;
+      }
+    }
+    if (all_valid) break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  }
+
+  // ============ 步骤 2.5：安全检查 - 反馈无效或超出限位则直接退出 ============
+  bool safety_check_failed = false;
+
   for (size_t i = 0; i < joint_configs_.size(); ++i) {
     const auto& config = joint_configs_[i];
+
+    // 检查1：反馈无效
+    if (!position_valid[i]) {
+      RCLCPP_ERROR(rclcpp::get_logger("RsA3HardwareInterface"),
+                   "❌ 关节 %s（电机 %d）反馈无效，无法确认当前位置，为安全起见拒绝启动",
+                   config.name.c_str(), config.motor_id);
+      safety_check_failed = true;
+      continue;
+    }
+
+    // 打印当前位置
     RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
-                "电机 %d 初始位置：0.0 rad（开环）", config.motor_id);
+                "电机 %d 实际初始位置：%.4f rad（%.1f°）",
+                config.motor_id, initial_positions[i],
+                initial_positions[i] * 180.0 / M_PI);
+
+    // 检查2：超出软件限位
+    if (initial_positions[i] < config.lower_limit ||
+        initial_positions[i] > config.upper_limit) {
+      RCLCPP_ERROR(rclcpp::get_logger("RsA3HardwareInterface"),
+                   "❌ 关节 %s（电机 %d）超出限位！当前=%.2f°（%.4f rad），限位=[%.2f°, %.2f°]",
+                   config.name.c_str(), config.motor_id,
+                   initial_positions[i] * 180.0 / M_PI,
+                   initial_positions[i],
+                   config.lower_limit * 180.0 / M_PI,
+                   config.upper_limit * 180.0 / M_PI);
+      safety_check_failed = true;
+    }
   }
+
+  if (safety_check_failed) {
+    RCLCPP_ERROR(rclcpp::get_logger("RsA3HardwareInterface"),
+                 "═══════════════════════════════════════════════════");
+    RCLCPP_ERROR(rclcpp::get_logger("RsA3HardwareInterface"),
+                 "  安全检查未通过，硬件接口将退出，机械臂不会启动");
+    RCLCPP_ERROR(rclcpp::get_logger("RsA3HardwareInterface"),
+                 "  请手动将机械臂移动到限位范围内，并确认所有电机连接正常");
+    RCLCPP_ERROR(rclcpp::get_logger("RsA3HardwareInterface"),
+                 "  然后重新启动程序");
+    RCLCPP_ERROR(rclcpp::get_logger("RsA3HardwareInterface"),
+                 "═══════════════════════════════════════════════════");
+
+    // 失能所有电机（步骤1已经以Kp=0软模式使能了，必须失能）
+    for (const auto& config : joint_configs_) {
+      auto& driver = can_drivers_.at(config.can_interface);
+      driver->disableMotor(config.motor_id);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+    return hardware_interface::CallbackReturn::ERROR;
+  }
+
+  RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
+              "✓ 安全检查通过：所有关节反馈有效且在限位范围内");
 
   // ============ 步骤 3：发送保持指令（切换到正常控制） ============
   RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
               "正在切换到位置保持模式...");
-  
+
   for (size_t i = 0; i < joint_configs_.size(); ++i) {
     const auto& config = joint_configs_[i];
     auto& driver = can_drivers_.at(config.can_interface);
-    
+
     // 初始化状态变量
     hw_positions_[i] = initial_positions[i];
     hw_commands_positions_[i] = initial_positions[i];
     smoothed_positions_[i] = initial_positions[i];
     smoothed_velocities_[i] = 0.0;
     smoothed_accelerations_[i] = 0.0;
-    
+
     // 计算电机坐标系下的位置
     double motor_pos = initial_positions[i] * config.direction + config.position_offset;
-    
+
     // 发送"保持当前位置"指令（正常 Kp/Kd）
     driver->sendMotionControl(
         config.motor_id,
@@ -647,19 +720,18 @@ hardware_interface::CallbackReturn RsA3HardwareInterface::on_activate(
         position_kd_,     // 正常 Kd
         0.0               // torque = 0
     );
-    
+
     RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
                 "电机 %d 保持在 %.4f rad（Kp=%.0f，Kd=%.1f）",
                 config.motor_id, initial_positions[i], position_kp_, position_kd_);
-    
+
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
-  
+
   RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
               "全部 %zu 个电机初始化成功", joint_configs_.size());
-  
-  first_command_ = false;
 
+  first_command_ = false;
   gravity_input_positions_.resize(joint_configs_.size(), 0.0);
   for (size_t i = 0; i < joint_configs_.size(); ++i) {
     gravity_input_positions_[i] = initial_positions[i];
@@ -668,10 +740,11 @@ hardware_interface::CallbackReturn RsA3HardwareInterface::on_activate(
     velocity_ff_stage2_[i] = 0.0;
   }
 
-  RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"), 
-              "硬件已激活（CSP 位置模式）");
+  RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
+              "硬件已激活（MOTION_CONTROL 运控模式）");
   return hardware_interface::CallbackReturn::SUCCESS;
 }
+
 
 hardware_interface::CallbackReturn RsA3HardwareInterface::on_deactivate(
   const rclcpp_lifecycle::State& /*previous_state*/)
