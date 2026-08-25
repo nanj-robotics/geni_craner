@@ -127,7 +127,15 @@ def generate_launch_description():
             planning_scene_monitor_parameters,
         ],
     )
+    
+    zero_torque_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["zero_torque_controller", "-c", "/controller_manager",
+                   "--controller-manager-timeout", "60", "--inactive"],
+    )
 
+    
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",

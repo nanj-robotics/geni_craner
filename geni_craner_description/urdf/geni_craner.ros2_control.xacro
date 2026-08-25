@@ -13,6 +13,14 @@
         <param name="max_acceleration">0.5</param>
         <param name="smoothing_alpha">0.8</param>
         <param name="use_mock_hardware">false</param>
+        <param name="urdf_path">/home/leo/geni_craner_ws/src/geni_craner_description/urdf/geni_craner.urdf</param>
+        <param name="use_pinocchio_gravity">true</param>
+        <param name="gravity_feedforward_ratio">1.0</param>
+        <param name="adaptive_kd_enabled">true</param>
+        <param name="zero_torque_kd_min">0.02</param>
+        <param name="zero_torque_kd_max">0.15</param>
+        <param name="kd_velocity_ref">1.0</param>
+        <param name="kd_smoothing_alpha">0.15</param>
       </hardware>
 
       <joint name="${prefix}joint1">
@@ -23,6 +31,8 @@
         <param name="lower_limit">-3.1415</param>
         <param name="upper_limit">3.1415</param>
         <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="effort"/>
@@ -35,8 +45,10 @@
         <param name="direction">-1.0</param>
         <param name="lower_limit">-2.0944</param>
         <param name="upper_limit">2.0944</param>
-        <param name="kp">200</param>
+        <param name="kp">100</param>
         <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="effort"/>
@@ -50,6 +62,8 @@
         <param name="lower_limit">-3.1415</param>
         <param name="upper_limit">3.1415</param>
         <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="effort"/>
@@ -62,7 +76,10 @@
         <param name="direction">-1.0</param>
         <param name="lower_limit">-1.658</param>
         <param name="upper_limit">1.658</param>
+        <param name="kp">100</param>
         <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="effort"/>
@@ -76,6 +93,8 @@
         <param name="lower_limit">-3.1415</param>
         <param name="upper_limit">3.1415</param>
         <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="effort"/>
@@ -89,6 +108,8 @@
         <param name="lower_limit">-1.658</param>
         <param name="upper_limit">1.658</param>
         <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="effort"/>
@@ -102,6 +123,8 @@
         <param name="lower_limit">-3.1415</param>
         <param name="upper_limit">3.1415</param>
         <command_interface name="position"/>
+        <command_interface name="velocity"/>
+        <command_interface name="effort"/>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
         <state_interface name="effort"/>

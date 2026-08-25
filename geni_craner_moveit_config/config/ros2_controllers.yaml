@@ -28,4 +28,18 @@ joint_trajectory_controller:
     constraints:
       stopped_velocity_tolerance: 0.01
       goal_time: 0.0
+      
+zero_torque_controller:
+  ros__parameters:
+    joints:
+      - joint1
+      - joint2
+      - joint3
+      - joint4
+      - joint5
+      - joint6
+      - joint7
+    kd: 1.0
+    urdf_path: /home/leo/geni_craner_ws/src/geni_craner_description/urdf/geni_craner.urdf
+
 

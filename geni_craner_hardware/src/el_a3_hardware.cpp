@@ -271,6 +271,11 @@ hardware_interface::CallbackReturn RsA3HardwareInterface::on_init(
         use_pinocchio_gravity_ = (info_.hardware_parameters.at("use_pinocchio_gravity") == "true");
       }
       
+      // 新增：Pinocchio 模式启用时，自动开启重力补偿总开关
+      if (use_pinocchio_gravity_ && pinocchio_initialized_) {
+        gravity_comp_enabled_ = true;
+      }
+      
       // 读取惯量缩放因子（用于标定微调）
       inertia_scale_params_.resize(joint_configs_.size());
       for (size_t i = 0; i < joint_configs_.size(); ++i) {
@@ -691,6 +696,69 @@ hardware_interface::CallbackReturn RsA3HardwareInterface::on_activate(
 
   RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
               "✓ 安全检查通过：所有关节反馈有效且在限位范围内");
+              
+    // ============ 步骤 2.6：先满Kp再渐变前馈，彻底消除上抬 ============
+  std::vector<double> startup_gravity_torques(joint_configs_.size(), 0.0);
+  if (gravity_comp_enabled_ && use_pinocchio_gravity_ && pinocchio_initialized_) {
+      startup_gravity_torques = computePinocchioGravity(initial_positions);
+      RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
+                  "启动：先建Kp(100ms)再渐变前馈(200ms)");
+  }
+
+  // 阶段1（100ms）：Kp从0渐变到100%，前馈=0 → 臂微小下垂，Kp限制下垂量
+  const int kp_steps = 10;
+  for (int step = 1; step <= kp_steps; ++step) {
+    double kp_ratio = static_cast<double>(step) / kp_steps;
+    for (size_t i = 0; i < joint_configs_.size(); ++i) {
+      const auto& config = joint_configs_[i];
+      auto& driver = can_drivers_.at(config.can_interface);
+      double motor_pos = initial_positions[i] * config.direction + config.position_offset;
+      double joint_kp = (config.kp > 0.0) ? config.kp : position_kp_;
+      driver->sendMotionControl(
+          config.motor_id, config.motor_type,
+          motor_pos, 0.0, joint_kp * kp_ratio, position_kd_, 0.0
+      );
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+
+  // 阶段2（200ms）：Kp=100%，前馈从0渐变到100% → 臂平滑回升到指令位置
+  const int ff_steps = 20;
+  for (int step = 1; step <= ff_steps; ++step) {
+    double ff_ratio = static_cast<double>(step) / ff_steps;
+    for (size_t i = 0; i < joint_configs_.size(); ++i) {
+      const auto& config = joint_configs_[i];
+      auto& driver = can_drivers_.at(config.can_interface);
+      double motor_pos = initial_positions[i] * config.direction + config.position_offset;
+      double joint_kp = (config.kp > 0.0) ? config.kp : position_kp_;
+      double motor_torque = startup_gravity_torques[i] * gravity_feedforward_ratio_ * config.direction * ff_ratio;
+      driver->sendMotionControl(
+          config.motor_id, config.motor_type,
+          motor_pos, 0.0, joint_kp, position_kd_, motor_torque
+      );
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+
+  // 重新读取稳定后的位置
+  for (int retry = 0; retry < 20; ++retry) {
+    bool all_valid = true;
+    for (size_t i = 0; i < joint_configs_.size(); ++i) {
+      const auto& config = joint_configs_[i];
+      auto& driver = can_drivers_.at(config.can_interface);
+      auto feedback = driver->getMotorFeedback(config.motor_id);
+      if (feedback.is_valid) {
+        initial_positions[i] = (feedback.position - config.position_offset) * config.direction;
+      } else {
+        all_valid = false;
+      }
+    }
+    if (all_valid) break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+
+
+
 
   // ============ 步骤 3：发送保持指令（切换到正常控制） ============
   RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
@@ -710,6 +778,9 @@ hardware_interface::CallbackReturn RsA3HardwareInterface::on_activate(
     // 计算电机坐标系下的位置
     double motor_pos = initial_positions[i] * config.direction + config.position_offset;
 
+    // 新增：计算电机坐标系下的重力前馈力矩
+    double motor_torque = startup_gravity_torques[i] * gravity_feedforward_ratio_ * config.direction;
+
     // 发送"保持当前位置"指令（正常 Kp/Kd）
     driver->sendMotionControl(
         config.motor_id,
@@ -718,12 +789,12 @@ hardware_interface::CallbackReturn RsA3HardwareInterface::on_activate(
         0.0,              // velocity = 0
         position_kp_,     // 正常 Kp
         position_kd_,     // 正常 Kd
-        0.0               // torque = 0
+        motor_torque      // torque = 0改成 motor_torque，避免step response
     );
 
     RCLCPP_INFO(rclcpp::get_logger("RsA3HardwareInterface"),
-                "电机 %d 保持在 %.4f rad（Kp=%.0f，Kd=%.1f）",
-                config.motor_id, initial_positions[i], position_kp_, position_kd_);
+                "电机 %d 保持在 %.4f rad（Kp=%.0f，Kd=%.1f, 重力前馈=%.2f Nm）",
+                config.motor_id, initial_positions[i], position_kp_, position_kd_, motor_torque);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(30));
   }
@@ -1503,7 +1574,8 @@ std::vector<double> RsA3HardwareInterface::computePinocchioGravity(
       }
       
       // Apply joint direction (consistent with hardware interface)
-      gravity_torques[i] = tau[i] * scale * joint_configs_[i].direction;
+      //gravity_torques[i] = tau[i] * scale * joint_configs_[i].direction;
+      gravity_torques[i] = tau[i] * scale ;
     }
     
   } catch (const std::exception& e) {
