@@ -1,4 +1,4 @@
-# Geni-Craner: 7-DOF Robot Arm with Deep Learning-Based Vision Grasping
+# Geni-Craner: 7-DOF robot arm with YOLOv11-Seg + FoundationPose vision-based grasping (ROS2)
 A 7-degree-of-freedom robotic arm with an iron hex-socket (Allen key)
 end-effector. Workpieces have magnets embedded inside, so the arm picks
 them up by magnetic attraction on contact. Vision-based grasping uses
