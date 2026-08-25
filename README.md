@@ -10,7 +10,7 @@ estimation.
 | Component | Details |
 |---|---|
 | Robot arm | 7-DOF custom arm (Geni-Craner) |
-| Joint motors | Robstride: 1× RS06, 1× RS03, 5× RS00 |
+| Joint motors | Robstride Dynamics: 1× RS06, 1× RS03, 5× RS00 |
 | End-effector | Iron hex socket (Allen key); magnets embedded in workpieces |
 | Depth camera | Orbbec Gemini 305 (RGB-D) |
 | Bus | CAN |
@@ -42,11 +42,11 @@ Iron end-effector contacts magnet-embedded workpiece → magnetic pickup
 ```
 geni_craner/
 ├── geni_craner_description/      # URDF/Xacro, STL meshes, display launch
-├── geni_craner_hardware/         # ros2_control hw, Robstride CAN driver,
+├── geni_craner_hardware/         # ros2_control hw, Robstride Dynamics CAN driver,
 │                                 # S-curve generator, zero-torque ctrl (C++)
 ├── geni_craner_moveit_config/    # MoveIt 2 config (SRDF, OMPL, controllers)
 │   └── grasp_node.py             # main grasp execution node
-├── easy_handeye2/                # hand-eye calibration (eye-in-hand)
+├── easy_handeye2/                # hand-eye calibration (eye-to-hand)
 ├── easy_handeye2_msgs/           # calibration message definitions
 └── verify_calib.py               # calibration accuracy verification
 ```
@@ -87,7 +87,7 @@ geni_craner/
 
 ```bash
 mkdir -p ~/geni_craner_ws/src && cd ~/geni_craner_ws/src
-git clone https://github.com/qinnanjiang1029-lgtm/geni_craner.git
+git clone https://gitee.com/leo45678/geni_craner.git
 cd ~/geni_craner_ws
 rosdep install --from-paths src --ignore-src -r -y
 colcon build --symlink-install
@@ -97,5 +97,5 @@ source install/setup.bash
 ## References
 - FoundationPose: https://github.com/NVlabs/FoundationPose
 - easy_handeye2: https://github.com/marcoesposito1988/easy_handeye2
-- Robstride: https://github.com/RobStride/EDULITE_A3
+- Robstride Dynamics: https://github.com/RobStride/EDULITE_A3
 - Orbbec: https://github.com/orbbec/OrbbecSDK_ROS2
