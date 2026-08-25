@@ -5,6 +5,8 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
     joint_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
+    zero_torque_controller:
+      type: el_a3_hardware/ZeroTorqueController
 
 joint_trajectory_controller:
   ros__parameters:

@@ -17,8 +17,8 @@
         <param name="use_pinocchio_gravity">true</param>
         <param name="gravity_feedforward_ratio">1.0</param>
         <param name="adaptive_kd_enabled">true</param>
-        <param name="zero_torque_kd_min">0.02</param>
-        <param name="zero_torque_kd_max">0.15</param>
+        <param name="zero_torque_kd_min">0.08</param>
+        <param name="zero_torque_kd_max">0.6</param>
         <param name="kd_velocity_ref">1.0</param>
         <param name="kd_smoothing_alpha">0.15</param>
       </hardware>

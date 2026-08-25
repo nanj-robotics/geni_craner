@@ -167,6 +167,7 @@ def generate_launch_description():
         joint_state_broadcaster_spawner,
         delay_arm_controller,
         delay_move_group,
+        zero_torque_spawner,
         rviz_node,
     ]
 
