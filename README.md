@@ -12,7 +12,7 @@ estimation.
 | Robot arm | 7-DOF custom arm (Geni-Craner) |
 | Joint motors | Robstride Dynamics: 1× RS06, 1× RS03, 5× RS00 |
 | End-effector | Iron hex socket (Allen key); magnets embedded in workpieces |
-| Depth camera | Orbbec Gemini 305 (RGB-D) |
+| RGB-D camera | Orbbec Gemini 305 |
 | Bus | CAN |
 | Host | Ubuntu 22.04, CUDA 12.1 |
 
