@@ -22,6 +22,21 @@ estimation.
 | Bus | CAN |
 | Host | Ubuntu 22.04, CUDA 12.1 |
 
+## Zero-Torque Mode
+
+Gravity-compensated free-drag mode for kinesthetic teaching and VLA data
+collection. Implemented as a `ros2_control` controller using Pinocchio RNEA
+for gravity compensation plus adaptive damping (Kp=0, so motors do not resist
+manual movement).
+
+```bash
+# Activate zero-torque (human can drag the arm)
+ros2 control switch_controllers --deactivate joint_trajectory_controller --activate zero_torque_controller
+
+# Return to normal trajectory control
+ros2 control switch_controllers --deactivate zero_torque_controller --activate joint_trajectory_controller
+
+
 ## System Pipeline
 
 ```
