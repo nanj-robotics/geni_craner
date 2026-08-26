@@ -1,4 +1,10 @@
-# Geni-Craner: 7-DOF robot arm with YOLOv11-Seg + FoundationPose vision-based grasping (ROS2)
+# Geni Craner: 7-DOF robot arm with YOLOv11-Seg + FoundationPose vision-based grasping
+
+<div align="center">
+  <img src="./assets/Geni_Craner.JPG" width="375" />
+  <p>Geni‑Craner 7‑DOF magnetic suction robotic arm</p>
+</div>
+
 A 7-degree-of-freedom robotic arm with an iron hex-socket (Allen key)
 end-effector. Workpieces have magnets embedded inside, so the arm picks
 them up by magnetic attraction on contact. Vision-based grasping uses
@@ -9,7 +15,7 @@ estimation.
 
 | Component | Details |
 |---|---|
-| Robot arm | 7-DOF custom arm (Geni-Craner) |
+| Robot arm | 7-DOF custom arm (Geni Craner) |
 | Joint motors | Robstride Dynamics: 1× RS06, 1× RS03, 5× RS00 |
 | End-effector | Iron hex socket (Allen key); magnets embedded in workpieces |
 | RGB-D camera | Orbbec Gemini 305 |
