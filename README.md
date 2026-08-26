@@ -2,7 +2,7 @@
 
 <div align="center">
   <img src="./assets/Geni_Craner.JPG" width="375" />
-  <p>Geni‑Craner 7‑DOF magnetic suction robotic arm</p>
+  <p>Geni Craner (a 7‑DOF robot arm)</p>
 </div>
 
 A 7-degree-of-freedom robotic arm with an iron hex-socket (Allen key)
