@@ -1,8 +1,8 @@
-# Geni Craner: 7-DOF robot arm with YOLOv11-Seg + FoundationPose vision-based grasping
+# GeniCraner: 7-DOF robot arm with YOLOv11-Seg + FoundationPose vision-based grasping
 
 <div align="center">
   <img src="./assets/Geni_Craner.JPG" width="375" />
-  <p>Geni Craner (a 7‑DOF robot arm)</p>
+  <p>GeniCraner (a 7‑DOF robot arm)</p>
 </div>
 
 A 7-degree-of-freedom robotic arm with an iron hex-socket (Allen key)
@@ -15,7 +15,7 @@ estimation.
 
 | Component | Details |
 |---|---|
-| Robot arm | 7-DOF custom arm (Geni Craner) |
+| Robot arm | 7-DOF custom arm (GeniCraner) |
 | Joint motors | Robstride Dynamics: 1× RS06, 1× RS03, 5× RS00 |
 | End-effector | Iron hex socket (Allen key); magnets embedded in workpieces |
 | RGB-D camera | Orbbec Gemini 305 |
