@@ -35,7 +35,7 @@ ros2 control switch_controllers --deactivate joint_trajectory_controller --activ
 
 # Return to normal trajectory control
 ros2 control switch_controllers --deactivate zero_torque_controller --activate joint_trajectory_controller
-
+```
 
 ## System Pipeline
 
