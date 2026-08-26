@@ -30,7 +30,10 @@ for gravity compensation plus adaptive damping (Kp=0, so motors do not resist
 manual movement).
 
 ```bash
-# Activate zero-torque (human can drag the arm)
+# 1. Real robot arm + MoveIt 2 + RViz (all-in-one launch)
+ros2 launch geni_craner_moveit_config real_robot.launch.py
+
+# 2. Zero-torque mode (for VLA data collection / manual teaching)
 ros2 control switch_controllers --deactivate joint_trajectory_controller --activate zero_torque_controller
 
 # Return to normal trajectory control
@@ -73,7 +76,7 @@ geni_craner/
 ```
 
 ## Environment
-- Ubuntu 22.04 LTS
+- Ubuntu 22.04
 - ROS2 Humble
 - MoveIt2 (Humble)
 - CUDA 12.1
