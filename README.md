@@ -111,7 +111,7 @@ geni_craner/
 
 ```bash
 mkdir -p ~/geni_craner_ws/src && cd ~/geni_craner_ws/src
-git clone https://gitee.com/leo45678/geni_craner.git
+git clone https://github.com/nanj-robotics/geni_craner.git
 cd ~/geni_craner_ws
 rosdep install --from-paths src --ignore-src -r -y
 colcon build --symlink-install
