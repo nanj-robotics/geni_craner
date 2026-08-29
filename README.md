@@ -2,7 +2,7 @@
 
 <div align="center">
   <img src="./assets/craner_show.jpg" />
-  <p>GeniCraner (a 7‑DOF robot arm)</p>
+  <p>GeniCraner (A 7‑DOF robot arm)</p>
 </div>
 
 A 7-degree-of-freedom robotic arm with an iron hex-socket (Allen key)
@@ -15,12 +15,13 @@ estimation.
 
 | Component | Details |
 |---|---|
-| Robot arm | 7-DOF custom arm (GeniCraner) |
-| Joint motors | Robstride Dynamics: 1× RS06, 1× RS03, 5× RS00 |
+| Robot Arm | 7-DOF custom arm (GeniCraner) |
+| Joint Motors | Robstride Dynamics: 1× RS06, 1× RS03, 5× RS00 |
 | End-effector | Iron hex socket (Allen key); magnets embedded in workpieces |
-| RGB-D camera | Orbbec Gemini 305 |
-| Bus | CAN |
-| Host | Ubuntu 22.04, CUDA 12.1 |
+| RGB-D Camera | Orbbec Gemini 305 |
+| CAN Adapter | CANdle / gs_usb compatible device |
+| Power Supply | 48V DC |
+| Host | Ubuntu 22.04+x86_64, CUDA 12.1 |
 
 ## Zero-Torque Mode
 
@@ -76,15 +77,15 @@ geni_craner/
 ```
 
 ## Environment
-- Ubuntu 22.04
-- ROS2 Humble
-- MoveIt2 (Humble)
+- Ubuntu 22.04+x86_64
+- ROS2 Humble (Python 3.10)
+- SocketCAN · CAN 2.0 Extended Frame · 1 Mbps
 - CUDA 12.1
 - PyTorch 2.1.0, torchvision 0.16.0, torchaudio 2.1.0
 - Ultralytics (YOLOv11)
 - FoundationPose(https://github.com/NVlabs/FoundationPose)
 - OrbbecSDK_ROS2 driver for Gemini 305
-- Linux socketCAN for motor communication
+- Pinocchio (pip install pinocchio) — FK/IK/Gravity compensation
 
 ## Notes
 - **YOLOv11-Seg model**: The trained weights (`*.pt`) are **not** included in this
