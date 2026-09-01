@@ -62,18 +62,35 @@ MoveIt 2 ──► motion plan & execute
 Iron end-effector contacts magnet-embedded workpiece → magnetic pickup
 ```
 
+## Reference Interfaces
+
+The screenshots below are provided as a visual reference for the expected
+appearance of the FoundationPose pose estimation and easy_handeye2 calibration
+interfaces.
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="./assets/foundationpose.png" width="420" />
+      <br /><strong>FoundationPose</strong> — 6D pose estimation
+    </td>
+    <td align="center">
+      <img src="./assets/handeye.png" width="420" />
+      <br /><strong>Hand-eye Calibration</strong> — easy_handeye2
+    </td>
+  </tr>
+</table>
+
 ## Repository Structure
 
 ```
 geni_craner/
 ├── geni_craner_description/      # URDF/Xacro, STL meshes, display launch
 ├── geni_craner_hardware/         # ros2_control hw, Robstride Dynamics CAN driver,
-│                                 # S-curve generator, zero-torque ctrl (C++)
+│                                   # S-curve generator, zero-torque ctrl (C++)
 ├── geni_craner_moveit_config/    # MoveIt 2 config (SRDF, OMPL, controllers)
-│   └── grasp_node.py             # main grasp execution node
-├── easy_handeye2/                # hand-eye calibration (eye-to-hand)
-├── easy_handeye2_msgs/           # calibration message definitions
-└── verify_calib.py               # calibration accuracy verification
+├── easy_handeye2/                 # hand-eye calibration (eye-to-hand)
+└── easy_handeye2_msgs/            # calibration message definitions
 ```
 
 ## Environment
@@ -96,17 +113,16 @@ geni_craner/
   mesh (e.g. from CAD / SolidWorks) and place it in the FoundationPose assets directory.
 - **Hand-eye calibration**: Must be performed once for your specific camera mounting
   position using `easy_handeye2` before grasping can work.
-- **Vision pipeline integration**: This repository provides the robot control,
-  MoveIt 2 planning, and grasp execution (`grasp_node.py`). The integration
-  of YOLOv11-Seg + FoundationPose — including converting the estimated 6D
-  pose from camera frame to `base_link` frame via hand-eye calibration and
-  publishing it as a TF — is **not** included and must be implemented by
-  the user.
+- **Grasp strategy node**: This repository provides the robot control, MoveIt 2 planning,
+  and low-level motion execution. The high-level grasp strategy node — which integrates
+  YOLOv11-Seg + FoundationPose, converts the estimated 6D pose from camera frame to
+  `base_link` frame via hand-eye calibration, and triggers grasp execution — is **not**
+  included and must be implemented by the user according to their specific setup and
+  workflow.
 - **Two Python environments**: The ROS2 packages run on system Python 3.10,
   while YOLOv11-Seg and FoundationPose run in the `foundationpose` conda
   environment (Python 3.9). Do not mix them — install deep learning dependencies
   only in the conda environment, and build ROS2 packages with the system Python.
-
 
 ## Build
 
