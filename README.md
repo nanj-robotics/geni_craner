@@ -87,10 +87,10 @@ interfaces.
 geni_craner/
 ├── geni_craner_description/      # URDF/Xacro, STL meshes, display launch
 ├── geni_craner_hardware/         # ros2_control hw, Robstride Dynamics CAN driver,
-│                                   # S-curve generator, zero-torque ctrl (C++)
+│                                 # S-curve generator, zero-torque ctrl (C++)
 ├── geni_craner_moveit_config/    # MoveIt 2 config (SRDF, OMPL, controllers)
-├── easy_handeye2/                 # hand-eye calibration (eye-to-hand)
-└── easy_handeye2_msgs/            # calibration message definitions
+├── easy_handeye2/                # hand-eye calibration (eye-to-hand)
+└── easy_handeye2_msgs/           # calibration message definitions
 ```
 
 ## Environment
