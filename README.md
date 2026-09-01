@@ -1,7 +1,7 @@
 # GeniCraner: 7-DOF robot arm with YOLOv11-Seg + FoundationPose vision-based grasping
 
 <div align="center">
-  <img src="./assets/craner_show.jpg" />
+  <img src="./assets/craner_show.jpg" width="600" />
   <p>GeniCraner (A 7‑DOF robot arm)</p>
 </div>
 
