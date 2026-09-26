@@ -11,7 +11,7 @@ them up by magnetic attraction on contact. Vision-based grasping uses
 YOLOv11-Seg for instance segmentation and FoundationPose for 6D pose
 estimation.
 
-This project was developed during my internship and released with the permission of my former employer.
+*This project was developed during my internship and released with the permission of my former employer.*
 
 ## Hardware
 
